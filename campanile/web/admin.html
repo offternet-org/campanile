@@ -93,6 +93,18 @@
           <button type="button" class="secondary" id="share-stop" data-i18n="admin.share.stop">Ferma la condivisione</button>
         </div>
       </div>
+      <h2 data-i18n="admin.coverage">Prova di copertura</h2>
+      <div class="panel">
+        <p data-i18n="admin.coverage.text">Serve a decidere dove mettere i nodi. Accendila, inquadra il codice qui sotto con il telefono, poi da ogni punto del palazzo premi &laquo;Misura qui&raquo;. Si spegne da sola dopo 2 ore.</p>
+        <p><strong id="coverage-url"></strong></p>
+        <div id="coverage-qr" class="qr" role="img" aria-label="Codice QR della pagina di prova" data-i18n-aria="admin.coverage.qr"></div>
+        <p class="meta" id="coverage-status"></p>
+        <button type="button" id="coverage-start" data-i18n="admin.coverage.start">Accendi per 2 ore</button>
+        <button type="button" class="secondary hidden" id="coverage-stop" data-i18n="admin.coverage.stop">Spegni</button>
+        <div id="coverage"></div>
+        <button type="button" class="secondary" id="coverage-clear" data-i18n="admin.coverage.clear">Cancella le misure</button>
+        <p class="result" id="coverage-result"></p>
+      </div>
       <div id="team-section" class="hidden">
         <h2 data-i18n="admin.team">Chi gestisce il Campanile</h2>
         <form class="panel" id="team-form">

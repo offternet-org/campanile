@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import contextlib
 import ipaddress
+import os
 import socket
 import threading
 import time
@@ -18,6 +19,15 @@ import store
 from store import RequestError, clean_text, normalize_name, parse_id
 
 SEARCH_WAIT = 0.25  # a waiting search holds a connection: past this, "try again in a moment"
+# The coverage test's piece of data: random, so nothing on the way can make it smaller.
+COVERAGE_SAMPLE = os.urandom(256 * 1024)
+# Good and fair, for deciding where a node goes (indicative): a page is a few hundred kB.
+GOOD_MS, GOOD_KBPS = 150, 2000
+FAIR_MS, FAIR_KBPS = 600, 300
+GOOD_WORST_MS = 500  # one message slower than this: the spot is at the edge, measured
+MAX_AGO = 86_400  # seconds a result may arrive late: kept on the phone out of range
+MAX_PAGE_MS = 120_000  # the home page or a post slower than two minutes: not opened, not sent
+SEND_CHARS = 5000  # the test post: a long one is 4,000 characters; the body cap is 8 kB
 
 
 def lan_address() -> str | None:
@@ -161,6 +171,18 @@ class PublicApi:
             return self._json(200, found)
         if path == "/api/roads/closed":
             return self._json(200, {"closed": self.cfg.routes.closed()})
+        if path == "/api/coverage/ping":
+            self._check_coverage()
+            return self._json(200, {"ok": True})
+        if path == "/api/coverage/sample":
+            self._check_coverage()
+            if not self.cfg.sample_limit.allow(self._device):
+                raise RequestError(429, "too_many_tests")
+            self._headers(
+                200, "application/octet-stream", len(COVERAGE_SAMPLE), {"Cache-Control": "no-store"}
+            )
+            self.wfile.write(COVERAGE_SAMPLE)
+            return None
         raise RequestError(404, "unknown_api")
 
     def _public_post(self, path: str, data: dict):
@@ -203,6 +225,30 @@ class PublicApi:
             safe_id, code = db.add_safe(name, message, place, device=self._device)
             return self._json(201, {"id": safe_id, "code": code})
 
+        if path == "/api/coverage/send":  # a test post: read and dropped, never on the board
+            self._check_coverage()
+            text = clean_text(data.get("text"), "text", SEND_CHARS, multiline=True)
+            return self._json(200, {"chars": len(text)})
+
+        if path == "/api/coverage":
+            self._check_coverage()
+            place = clean_text(data.get("place"), "place", 40)
+            sent = _whole(data.get("sent"), 1, 50)
+            lost = _whole(data.get("lost"), 0, sent)
+            # Nothing came back: no time to say. Something did: the times are required.
+            median = _whole(data.get("median_ms"), 0, 60_000, none=lost == sent)
+            worst = _whole(data.get("worst_ms"), median or 0, 60_000, none=lost == sent)
+            kbps = _whole(data.get("kbps"), 0, 10_000_000, none=True)
+            page = _whole(data.get("page_ms"), 0, MAX_PAGE_MS, none=True)
+            send = _whole(data.get("send_ms"), 0, MAX_PAGE_MS, none=True)
+            # Measured out of range and sent once back: placed when it was taken.
+            ago = _whole(data.get("ago"), 0, MAX_AGO, none=True) or 0
+            verdict = coverage_verdict(sent, lost, median, worst, kbps)
+            found = db.add_coverage(
+                place, sent, lost, median, worst, kbps, verdict, ago=ago, page_ms=page, send_ms=send
+            )
+            return self._json(201, {"id": found, "verdict": verdict})
+
         if path == "/api/safe/remove":
             self._check_code(
                 db.remove_safe,
@@ -212,6 +258,12 @@ class PublicApi:
             return self._json(200, {"ok": True})
 
         raise RequestError(404, "unknown_api")
+
+    def _check_coverage(self):
+        if time.monotonic() >= self.cfg.coverage_until:
+            raise RequestError(404, "coverage_off")
+        if not self.cfg.coverage_limit.allow(self._device):
+            raise RequestError(429, "too_many_tests")
 
     def _check_write_limit(self):
         if not self.cfg.write_limit.allow(self._device):
@@ -227,6 +279,29 @@ class PublicApi:
         if result == store.WRONG:
             self.cfg.wrong_code_limit.record(self._device)
             raise RequestError(403, "wrong_code")
+
+
+def coverage_verdict(
+    sent: int, lost: int, median_ms: int | None, worst_ms: int | None, kbps: int | None
+) -> str:
+    """good, fair or bad: indicative, for whoever decides where a node goes."""
+    if median_ms is None or kbps is None:  # nothing came back, or the data didn't
+        return "bad"
+    slow = worst_ms is not None and worst_ms > GOOD_WORST_MS
+    if lost == 0 and median_ms <= GOOD_MS and not slow and kbps >= GOOD_KBPS:
+        return "good"
+    if lost * 10 <= sent and median_ms <= FAIR_MS and kbps >= FAIR_KBPS:
+        return "fair"
+    return "bad"
+
+
+def _whole(value, low: int, high: int, *, none: bool = False) -> int | None:
+    """A whole number from low to high; null too, where `none` says it can be missing."""
+    if value is None and none:
+        return None
+    if isinstance(value, bool) or not isinstance(value, int) or not low <= value <= high:
+        raise RequestError(400, "bad_number")
+    return value
 
 
 @contextlib.contextmanager

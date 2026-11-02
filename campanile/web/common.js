@@ -123,6 +123,24 @@ export function fileSize(bytes) {
   return Math.max(1, Math.round(bytes / 1e3)) + " kB";
 }
 
+// The coverage test, on its page and on the admin page: good, fair or bad, and the speed.
+export function verdictLabel(verdict) {
+  if (verdict === "good") return t("cov.good");
+  if (verdict === "fair") return t("cov.fair");
+  return t("cov.bad");
+}
+
+export function secondsText(ms) {
+  // Under a tenth of a second it would round to "0 s", which reads like nothing happened.
+  return ms < 100 ? `<${decimal.format(0.1)}` : decimal.format(ms / 1000);
+}
+
+export function speedText(kbps) {
+  if (kbps === null || kbps === undefined) return t("cov.speed.none");
+  if (kbps >= 1000) return t("cov.mbit", { n: decimal.format(kbps / 1000) });
+  return t("cov.kbit", { n: kbps });
+}
+
 // One item of yours shows whole; several fold behind one line that stays in sight, so they
 // are neither a wall nor forgotten. The line stays open across the page's own refreshes.
 export function fold(container, cards, summary) {

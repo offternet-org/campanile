@@ -28,6 +28,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import api
 import devices
 import files
+import messages
 import server as campanile
 import signing
 import store
@@ -760,6 +761,221 @@ class TestPeople(CampanileTestCase):
         self.assertIn(b"Maria", kept)  # we are reading the right files
         self.assertNotIn(maria["password"].encode(), kept)
         self.assertNotIn(maria["password"].replace("-", "").encode(), kept)
+
+
+class TestCoverage(CampanileTestCase):
+    """The coverage test: off unless the admin turns it on, and nothing kept of the phone."""
+
+    OFF = messages.text("coverage_off", "it")
+    COLUMNS = frozenset(
+        (
+            "id",
+            "at",
+            "place",
+            "sent",
+            "lost",
+            "median_ms",
+            "worst_ms",
+            "kbps",
+            "verdict",
+            "page_ms",
+            "send_ms",
+        )
+    )
+
+    def measurement(self, **overrides):
+        data = {
+            "place": "piano 3, pianerottolo",
+            "sent": 20,
+            "lost": 0,
+            "median_ms": 12,
+            "worst_ms": 40,
+            "kbps": 25000,
+            "page_ms": 900,
+            "send_ms": 60,
+        }
+        data.update(overrides)
+        return self.json("POST", "/api/coverage", data)
+
+    def test_off_until_the_admin_turns_it_on(self):
+        for method, path, body in (
+            ("GET", "/api/coverage/ping", None),
+            ("GET", "/api/coverage/sample", None),
+            ("POST", "/api/coverage", {"place": "x", "sent": 1, "lost": 1}),
+            ("POST", "/api/coverage/send", {"text": "x"}),
+        ):
+            status, data = self.json(method, path, body)
+            self.assertEqual((status, data["error"]), (404, self.OFF), path)
+        status, state = self.admin("/api/admin/coverage/start")
+        self.assertEqual(status, 200)
+        self.assertTrue(2 * 3600 - 60 < state["left"] <= 2 * 3600, state["left"])  # it ends
+        self.assertEqual(self.json("GET", "/api/coverage/ping"), (200, {"ok": True}))
+        status, state = self.admin("/api/admin/coverage/stop")
+        self.assertEqual((status, state["left"]), (200, 0))
+        status, data = self.json("GET", "/api/coverage/ping")
+        self.assertEqual((status, data["error"]), (404, self.OFF))
+
+    def test_it_turns_itself_off(self):
+        self.admin("/api/admin/coverage/start")
+        self.cfg.coverage_until = time.monotonic() - 1  # two hours later
+        status, data = self.json("GET", "/api/coverage/ping")
+        self.assertEqual((status, data["error"]), (404, self.OFF))
+        self.assertEqual(self.admin("/api/admin/coverage")[1]["left"], 0)
+
+    def test_the_piece_of_data_is_256_kb_and_never_cached(self):
+        self.admin("/api/admin/coverage/start")
+        r, content = self.request("GET", "/api/coverage/sample")
+        self.assertEqual(r.status, 200)
+        self.assertEqual(len(content), 256 * 1024)
+        self.assertEqual(content, api.COVERAGE_SAMPLE)
+        self.assertEqual(r.getheader("Content-Type"), "application/octet-stream")
+        self.assertEqual(r.getheader("Cache-Control"), "no-store")
+
+    def test_a_measurement_is_kept_with_its_verdict_and_nothing_of_the_phone(self):
+        self.admin("/api/admin/coverage/start")
+        self.assertEqual(self.measurement()[1]["verdict"], "good")
+        status, saved = self.measurement(
+            place="cantina", lost=20, median_ms=None, worst_ms=None, kbps=None
+        )
+        self.assertEqual((status, saved["verdict"]), (201, "bad"))
+        rows = self.admin("/api/admin/coverage")[1]["results"]
+        self.assertEqual([r["place"] for r in rows], ["piano 3, pianerottolo", "cantina"])
+        self.assertEqual(set(rows[0]), self.COLUMNS)
+        self.assertEqual((rows[1]["median_ms"], rows[1]["kbps"]), (None, None))
+        # Not in the answer, and not in the file either: no address, no device tag.
+        with contextlib.closing(sqlite3.connect(self.data / "campanile.db")) as db:
+            columns = {row[1] for row in db.execute("PRAGMA table_info(coverage)")}
+        self.assertEqual(columns, self.COLUMNS)
+
+    def test_the_verdict(self):
+        verdict = api.coverage_verdict
+        good = (api.GOOD_MS, api.GOOD_WORST_MS, api.GOOD_KBPS)
+        self.assertEqual(verdict(20, 0, *good), "good")
+        self.assertEqual(verdict(20, 1, 30, 40, 50_000), "fair")  # one lost is no longer good
+        self.assertEqual(verdict(20, 0, api.GOOD_MS + 1, 200, 50_000), "fair")
+        self.assertEqual(verdict(20, 0, 30, 40, api.GOOD_KBPS - 1), "fair")
+        # One message slow, the rest fast: the edge of the coverage (measured: 763 ms there).
+        self.assertEqual(verdict(20, 0, 35, api.GOOD_WORST_MS + 1, 50_000), "fair")
+        self.assertEqual(verdict(20, 2, api.FAIR_MS, 1900, api.FAIR_KBPS), "fair")
+        self.assertEqual(verdict(20, 3, 30, 40, 50_000), "bad")  # more than one in ten lost
+        self.assertEqual(verdict(20, 0, api.FAIR_MS + 1, 900, 50_000), "bad")
+        self.assertEqual(verdict(20, 0, 30, 40, api.FAIR_KBPS - 1), "bad")
+        self.assertEqual(verdict(3, 3, None, None, None), "bad")  # nothing got through
+        self.assertEqual(verdict(20, 0, 30, 40, None), "bad")  # the data never arrived
+
+    def test_a_late_measurement_goes_where_it_was_taken(self):
+        # Out of range the phone keeps it; back in range it says how long ago it was taken.
+        self.admin("/api/admin/coverage/start")
+        self.measurement(place="piano 4")
+        status, saved = self.measurement(
+            place="-1", sent=3, lost=3, median_ms=None, worst_ms=None, kbps=None, ago=600
+        )
+        self.assertEqual((status, saved["verdict"]), (201, "bad"))
+        rows = self.admin("/api/admin/coverage")[1]["results"]
+        self.assertEqual([r["place"] for r in rows], ["-1", "piano 4"])  # in the order taken
+        self.assertAlmostEqual(rows[1]["at"] - rows[0]["at"], 600, delta=5)
+        for wrong in (-1, api.MAX_AGO + 1, True, 1.5, "10"):
+            self.assertEqual(self.measurement(ago=wrong)[0], 400, wrong)
+
+    def test_wrong_numbers_are_refused(self):
+        self.admin("/api/admin/coverage/start")
+        for wrong in (
+            {"sent": 0},
+            {"sent": 51},
+            {"lost": 21},
+            {"lost": -1},
+            {"median_ms": None},  # something came back: its time is required
+            {"median_ms": True},
+            {"median_ms": 1.5},
+            {"median_ms": 60_001},
+            {"worst_ms": 5},  # faster than the median
+            {"kbps": -1},
+            {"kbps": "fast"},
+            {"page_ms": -1},
+            {"page_ms": api.MAX_PAGE_MS + 1},
+            {"send_ms": True},
+            {"send_ms": "fast"},
+            {"place": ""},
+            {"place": "x" * 41},
+        ):
+            status, _ = self.measurement(**wrong)
+            self.assertEqual(status, 400, wrong)
+        raw = b'{"place": "a", "sent": 20, "lost": 0, "median_ms": NaN, "worst_ms": 1, "kbps": 1}'
+        self.assertEqual(self.request("POST", "/api/coverage", raw)[0].status, 400)
+        self.assertEqual(self.admin("/api/admin/coverage")[1]["results"], [])
+
+    def test_the_test_post_is_read_and_dropped(self):
+        self.admin("/api/admin/coverage/start")
+        status, answer = self.json("POST", "/api/coverage/send", {"text": "x" * 4000})
+        self.assertEqual((status, answer), (200, {"chars": 4000}))
+        self.assertEqual(self.json("GET", "/api/posts")[1]["posts"], [])  # not on the board
+        for wrong in ({"text": "x" * (api.SEND_CHARS + 1)}, {"text": 5}, {}):
+            self.assertEqual(self.json("POST", "/api/coverage/send", wrong)[0], 400, wrong)
+
+    def test_page_and_post_times_are_kept_and_may_be_missing(self):
+        self.admin("/api/admin/coverage/start")
+        self.measurement()
+        self.measurement(place="-1", page_ms=None, send_ms=None)  # nothing opened from there
+        rows = self.admin("/api/admin/coverage")[1]["results"]
+        self.assertEqual([(r["page_ms"], r["send_ms"]) for r in rows], [(900, 60), (None, None)])
+
+    def test_one_phone_cannot_turn_it_into_a_load(self):
+        self.admin("/api/admin/coverage/start")
+        samples = [
+            self.request("GET", "/api/coverage/sample")[0].status
+            for _ in range(campanile.COVERAGE_SAMPLES + 1)
+        ]
+        self.assertEqual(samples, [200] * campanile.COVERAGE_SAMPLES + [429])
+        left = campanile.COVERAGE_REQUESTS - len(samples)  # every sample counted as a request
+        pings = [self.request("GET", "/api/coverage/ping")[0].status for _ in range(left + 1)]
+        self.assertEqual(pings, [200] * left + [429])
+
+    def test_only_the_admin_turns_it_on_and_it_is_logged(self):
+        status, _ = self.json("POST", "/api/admin/coverage/start", {"password": "wrong"})
+        self.assertEqual(status, 403)
+        self.assertEqual(self.json("GET", "/api/coverage/ping")[0], 404)
+        self.admin("/api/admin/coverage/start")
+        self.measurement()
+        status, state = self.admin("/api/admin/coverage/clear")
+        self.assertEqual((status, state["results"]), (200, []))
+        log = [(e["action"], e["detail"]) for e in self.admin("/api/admin/log")[1]["log"]]
+        self.assertIn(("coverage_started", ""), log)
+        self.assertIn(("coverage_cleared", "1"), log)
+
+    def test_old_measurements_go(self):
+        self.admin("/api/admin/coverage/start")
+        with mock.patch.object(store, "MAX_COVERAGE", 3):
+            for i in range(5):
+                self.measurement(place=f"punto {i}")
+        places = [r["place"] for r in self.admin("/api/admin/coverage")[1]["results"]]
+        self.assertEqual(places, ["punto 2", "punto 3", "punto 4"])
+
+
+class TestCoverageMigration(unittest.TestCase):
+    def test_a_coverage_table_from_before_gets_the_new_columns(self):
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / "campanile.db"
+            with contextlib.closing(sqlite3.connect(path)) as db:
+                db.execute(
+                    "CREATE TABLE coverage (id INTEGER PRIMARY KEY AUTOINCREMENT, at INTEGER NOT"
+                    " NULL, place TEXT NOT NULL, sent INTEGER NOT NULL, lost INTEGER NOT NULL,"
+                    " median_ms INTEGER, worst_ms INTEGER, kbps INTEGER, verdict TEXT NOT NULL)"
+                )
+                db.execute(
+                    "INSERT INTO coverage (at, place, sent, lost, median_ms, worst_ms, kbps,"
+                    " verdict) VALUES (1, 'camera', 20, 0, 17, 73, 17300, 'good')"
+                )
+                db.commit()
+            kept = store.Store(path)
+            try:
+                kept.add_coverage(
+                    "ascensore", 20, 0, 23, 64, 12600, "good", page_ms=800, send_ms=50
+                )
+                rows = kept.coverage()
+            finally:
+                kept.close()
+        self.assertEqual([r["place"] for r in rows], ["camera", "ascensore"])
+        self.assertEqual([(r["page_ms"], r["send_ms"]) for r in rows], [(None, None), (800, 50)])
 
 
 class TestPortal(CampanileTestCase):

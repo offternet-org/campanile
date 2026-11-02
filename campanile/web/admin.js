@@ -1,6 +1,10 @@
 // DEVELOPED BY CARROTSTUDIO software house
-import { api, el, when, realTime, showResult, categoryLabel, kindLabel, fileSize } from "/common.js";
-import { lang, t, tn, translatePage } from "/i18n.js";
+import {
+  api, el, when, realTime, showResult, categoryLabel, kindLabel, fileSize, secondTap, speedText,
+  verdictLabel, secondsText,
+} from "/common.js";
+import { beforeLanguageChange, lang, t, tn, translatePage } from "/i18n.js";
+import { drawQr } from "/qr.js";
 import { maplibregl, readHeader, registerPmtiles, style } from "/mapstyle.js";
 import { routable } from "/route.js";
 
@@ -384,9 +388,55 @@ async function share(action) {
 document.getElementById("share-start").addEventListener("click", () => share("start").catch((e) => alert(e.message)));
 document.getElementById("share-stop").addEventListener("click", () => share("stop").catch((e) => alert(e.message)));
 
-document.getElementById("login").addEventListener("submit", async (event) => {
-  event.preventDefault();
-  password = document.getElementById("password").value;
+// The coverage test: on for two hours, and what each spot of the building measured. While it
+// is on, new spots appear by themselves.
+let coveragePoll = null;
+
+function coverageRow(r) {
+  const rtt = r.median_ms === null ? t("cov.rtt.none") : `${r.median_ms} ms`;
+  const page = r.page_ms === null ? t("cov.opened.none") : t("cov.opened", { s: secondsText(r.page_ms) });
+  const send = r.send_ms === null ? t("cov.send.none") : t("cov.send", { s: secondsText(r.send_ms) });
+  const parts = [realTime(r.at * 1000), r.place, verdictLabel(r.verdict), rtt,
+    t("cov.lost", { lost: r.lost, sent: r.sent }), page, send, speedText(r.kbps)];
+  return el("div", { class: "meta", text: parts.join(" · ") });
+}
+
+function showCoverage(state) {
+  const on = state.left > 0;
+  document.getElementById("coverage-status").textContent =
+    on ? t("admin.coverage.on", { n: Math.ceil(state.left / 60) }) : t("admin.coverage.off");
+  document.getElementById("coverage-start").classList.toggle("hidden", on);
+  document.getElementById("coverage-stop").classList.toggle("hidden", !on);
+  const rows = state.results.map(coverageRow);
+  document.getElementById("coverage").replaceChildren(
+    ...(rows.length ? rows : [el("p", { class: "meta", text: t("admin.coverage.none") })]));
+  clearTimeout(coveragePoll);
+  if (on) coveragePoll = setTimeout(() => coverage("").catch(() => {}), 10_000);
+}
+
+async function coverage(action) {
+  const path = action ? `/api/admin/coverage/${action}` : "/api/admin/coverage";
+  showCoverage(await api(path, { password }));
+}
+
+const coverageError = (error) => showResult(document.getElementById("coverage-result"), error.message, true);
+document.getElementById("coverage-start").addEventListener("click", () => coverage("start").catch(coverageError));
+document.getElementById("coverage-stop").addEventListener("click", () => coverage("stop").catch(coverageError));
+secondTap(document.getElementById("coverage-clear"), t("admin.coverage.sure"),
+  () => coverage("clear").catch(coverageError));
+
+// Changing language reloads the page, which would forget the password and log out. On the
+// Campanile itself it crosses that one reload in this tab's storage, and is gone right after.
+// Never from another device: a fake Campanile loaded in the same tab could read it there.
+const HANDOFF_KEY = "campanile-admin-handoff";
+const ON_THE_CAMPANILE = ["localhost", "127.0.0.1", "[::1]"].includes(location.hostname);
+beforeLanguageChange(() => {
+  if (!password || !ON_THE_CAMPANILE) return;
+  try { sessionStorage.setItem(HANDOFF_KEY, password); } catch { /* logged out, as before */ }
+});
+
+async function login(candidate) {
+  password = candidate;
   try {
     const me = await api("/api/admin/me", { password });
     await load();
@@ -398,6 +448,10 @@ document.getElementById("login").addEventListener("submit", async (event) => {
     document.getElementById("share-address").textContent = status.address || location.origin;
     document.getElementById("emergency-input").value = status.emergency;
     await share("state");
+    const coverageUrl = `${status.address || `${location.origin}/`}coverage.html`;
+    document.getElementById("coverage-url").textContent = t("admin.coverage.open", { url: coverageUrl });
+    drawQr(document.getElementById("coverage-qr"), coverageUrl); // the phone scans, no typing
+    await coverage("");
     const main = me.name === "";
     document.getElementById("team-section").classList.toggle("hidden", !main);
     if (main) loadTeam().catch((e) => showResult(document.getElementById("team-result"), e.message, true));
@@ -407,4 +461,18 @@ document.getElementById("login").addEventListener("submit", async (event) => {
     password = "";
     showResult(loginResult, error.message, true);
   }
+}
+
+document.getElementById("login").addEventListener("submit", (event) => {
+  event.preventDefault();
+  login(document.getElementById("password").value);
 });
+
+let handedOver = null;
+try {
+  handedOver = sessionStorage.getItem(HANDOFF_KEY);
+  sessionStorage.removeItem(HANDOFF_KEY);
+} catch {
+  // no storage: nothing was handed over
+}
+if (handedOver && ON_THE_CAMPANILE) login(handedOver);

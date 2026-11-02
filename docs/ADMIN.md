@@ -42,6 +42,26 @@ The Campanile makes it (like `K7M2-QX9P-T2PA-8WNE`) and shows it once: write it 
 over. They can do everything except add or remove people, and the log shows their name. If
 someone leaves, remove only them: their password stops working at once.
 
+### Where to put it: the coverage test
+
+Before deciding where a Campanile goes, or a second one, walk around with a phone and measure.
+**Coverage test** on the admin page turns it on for 2 hours, then it turns itself off, and shows
+its address and a QR code. On a phone on the Campanile's Wi-Fi, open it, write where you are
+("3rd floor, landing") and tap **Measure here**. Each measure takes a few seconds: 20 short
+messages, the home page opened as a phone opens it, a test post (read and dropped, it never
+reaches the board) and a 256 kB download. The answer:
+
+- **Good**: nothing lost, half the replies within 150 ms, the slowest within 0.5 s, at least
+  2 Mbit/s;
+- **Fair**: at most 1 in 10 lost, half within 0.6 s, at least 0.3 Mbit/s;
+- **Bad**: anything less.
+
+Where nothing gets through, the measure waits on the phone and goes by itself, with its time,
+once you are back in range: the holes matter most. The admin page lists every measure, refreshed
+while the test is on, and **Clear** (tap twice) empties the list. The last 500 are kept. On the
+[bench](BENCH.md), where the test said good or fair, two Campaniles swapped their boards in time
+469 times out of 470.
+
 ### Signed notices (optional)
 
 An authority, such as civil protection, can sign its notices. Only notices signed with its key

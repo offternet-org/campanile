@@ -50,6 +50,11 @@ ROUTES = 10  # routes per device in SEARCH_WINDOW seconds: each choice of mode m
 # routes take long, and one phone must not keep the navigator from everyone.
 ROUTE_SECONDS = 2.0
 SEARCHING = 1  # map searches at the same time: the others wait their turn, briefly
+# The coverage test, per device a minute: a measurement is 21 short requests and one 256 kB
+# piece, so a few measurements fit and nobody can turn it into a way to load the Campanile.
+COVERAGE_REQUESTS = 120
+COVERAGE_SAMPLES = 6
+COVERAGE_WINDOW = 60
 
 
 class Config:
@@ -104,6 +109,10 @@ class Config:
         self.routing = threading.BoundedSemaphore(SEARCHING)
         # The names too: each search goes through every name, under the database's one lock.
         self.safe_searching = threading.BoundedSemaphore(SEARCHING)
+        # The coverage test answers only while the admin has it on (time.monotonic()).
+        self.coverage_until = 0.0
+        self.coverage_limit = store.RateLimiter(COVERAGE_REQUESTS, COVERAGE_WINDOW)
+        self.sample_limit = store.RateLimiter(COVERAGE_SAMPLES, COVERAGE_WINDOW)
         self.device_tags = devices.DeviceTags(arp_table)
         self.setup = setup
         self.places = places.Places(self.maps, data / "places")

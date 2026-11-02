@@ -92,6 +92,14 @@ MESSAGES = {
         "it": "Troppi tentativi sbagliati. Riprova più tardi.",
         "en": "Too many wrong attempts. Try again later.",
     },
+    "too_many_tests": {
+        "it": "Troppe misure in poco tempo: aspetta un minuto.",
+        "en": "Too many measurements in a short time: wait a minute.",
+    },
+    "coverage_off": {
+        "it": "La prova di copertura è spenta: la accende chi gestisce il Campanile.",
+        "en": "The coverage test is off: whoever runs the Campanile turns it on.",
+    },
     "device_open_posts": {
         "it": "Hai già {count} annunci aperti: chiudine uno prima di pubblicarne altri.",
         "en": "You already have {count} open posts: close one before posting more.",

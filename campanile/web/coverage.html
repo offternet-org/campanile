@@ -1,0 +1,35 @@
+<!doctype html>
+<!-- DEVELOPED BY CARROTSTUDIO software house -->
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title data-i18n-title="cov.page">Prova di copertura &middot; Campanile</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/style.css">
+  <script type="module" src="/coverage.js"></script>
+</head>
+<body>
+  <header class="topbar"><a class="brand" href="/">Campanile</a> <nav class="lang" id="lang-switch"></nav></header>
+  <main>
+    <h1 data-i18n="cov.title">Prova di copertura</h1>
+    <p class="subtitle" data-i18n="cov.subtitle">Per chi installa il Campanile: misura quanto bene arriva il segnale da dove sei.</p>
+
+    <form class="panel" id="cov-form">
+      <label for="place" data-i18n="cov.place">Dove sei?</label>
+      <input type="text" id="place" maxlength="40" required autocomplete="off" placeholder="Es.: piano 3, pianerottolo" data-i18n-ph="cov.place.ph">
+      <button type="submit" data-i18n="cov.measure">Misura qui</button>
+      <p class="result" id="cov-result" aria-live="polite"></p>
+      <p class="meta hidden" id="cov-pending" aria-live="polite"></p>
+    </form>
+
+    <section id="cov-mine" class="hidden">
+      <h2 data-i18n="cov.mine">Le misure di questo telefono</h2>
+      <div id="cov-list"></div>
+    </section>
+
+    <div class="note" data-i18n="cov.how">Ogni misura manda 20 messaggi brevi, apre la pagina principale come un telefono, manda un annuncio di prova (in bacheca non finisce), scarica un pezzo di dati da 256 kB e salva il risultato. Dove non arriva, resta sul telefono e parte appena torni in copertura. Tutte le misure si leggono nella pagina di gestione.</div>
+  </main>
+  <footer><a href="/" data-i18n="brand.home">Torna al Campanile</a></footer>
+</body>
+</html>

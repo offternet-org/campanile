@@ -42,6 +42,26 @@ La crea il Campanile (tipo `K7M2-QX9P-T2PA-8WNE`) e la mostra una volta sola: sc
 consegnala. Può fare tutto tranne aggiungere o togliere persone, e nel registro compare il suo
 nome. Se qualcuno se ne va, togli solo lui: la sua password smette subito di funzionare.
 
+### Dove metterlo: la prova di copertura
+
+Prima di decidere dove va un Campanile, o un secondo, si gira con un telefono e si misura.
+**Prova di copertura** nella pagina di gestione la accende per 2 ore, poi si spegne da sola, e
+ne mostra l'indirizzo e un codice QR. Sul telefono, collegato al Wi-Fi del Campanile, la si apre,
+si scrive dove si è ("piano 3, pianerottolo") e si tocca **Misura qui**. Ogni misura dura pochi
+secondi: 20 messaggi brevi, la pagina principale aperta come la apre un telefono, un annuncio di
+prova (letto e scartato, in bacheca non finisce) e un pezzo di dati da 256 kB. La risposta:
+
+- **Buono**: niente perso, metà delle risposte entro 150 ms, la più lenta entro 0,5 s, almeno
+  2 Mbit/s;
+- **Discreto**: al massimo 1 su 10 perso, metà entro 0,6 s, almeno 0,3 Mbit/s;
+- **Scarso**: tutto il resto.
+
+Dove non passa niente, la misura aspetta sul telefono e parte da sola, con la sua ora, appena si
+torna in copertura: i buchi sono la cosa più importante. La pagina di gestione elenca ogni misura,
+aggiornata mentre la prova è accesa, e **Cancella le misure** (due tocchi) svuota l'elenco. Restano
+le ultime 500. Sul [banco](BANCO.md), dove la prova diceva buono o discreto, due Campanili si sono
+scambiati le bacheche in tempo 469 volte su 470.
+
 ### Avvisi firmati (facoltativi)
 
 Un'autorità, come la protezione civile, può firmare i propri avvisi. Solo quelli firmati con la sua

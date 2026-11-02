@@ -17,6 +17,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "campanile"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import places
 import store
+import strictjson
 from test_server import server_source
 
 WEB = Path(__file__).resolve().parent.parent / "campanile" / "web"
@@ -104,6 +105,12 @@ class TestStrings(unittest.TestCase):
     def setUp(self):
         self.strings = catalog()
 
+    def test_no_key_twice(self):
+        # JSON keeps the last of two equal keys without a word: a new text would silently
+        # replace an old one (it happened to the coverage page's title).
+        source = (WEB / "strings.js").read_text(encoding="utf-8")
+        strictjson.loads(source.split("export const STRINGS =", 1)[1].strip().rstrip(";"))
+
     def test_every_language_has_every_key(self):
         reference = set(self.strings["it"])
         for lang, texts in self.strings.items():
@@ -183,6 +190,27 @@ class TestStrings(unittest.TestCase):
         self.assertIn(("aria", "board.filter.kind", "Tipo"), found)
         self.assertGreater(sum(len(marked(p)) for p in PAGES), 150)
         self.assertGreater(len([k for k in keys_in_scripts() if k.startswith("setup.error.")]), 7)
+
+
+class TestCoverageHome(unittest.TestCase):
+    def test_the_coverage_test_opens_what_the_home_page_needs(self):
+        # The page's own files, the modules they import one after the other, and the
+        # Campanile's answers the home page asks for: what a phone downloads to open it.
+        page = (WEB / "index.html").read_text(encoding="utf-8")
+        wanted = {"/"} | set(re.findall(r'<(?:link|script)[^>]+(?:href|src)="(/[^"]+)"', page))
+        todo = [path for path in wanted if path.endswith(".js")]
+        while todo:
+            source = (WEB / todo.pop().lstrip("/")).read_text(encoding="utf-8")
+            for found in re.findall(r'from "(/[\w.]+\.m?js)"', source):
+                if found not in wanted:
+                    wanted.add(found)
+                    todo.append(found)
+        home = (WEB / "index.js").read_text(encoding="utf-8")
+        wanted |= set(re.findall(r'api\("(/api/[\w/]+)', home))
+        self.assertGreater(len(wanted), 7)  # the search sees the page: a blind one finds little
+        source = (WEB / "coverage.js").read_text(encoding="utf-8")
+        listed = re.search(r"const HOME = \[(.*?)\];", source, re.S).group(1)
+        self.assertEqual(set(re.findall(r'"([^"]+)"', listed)), wanted)
 
 
 class TestLayout(unittest.TestCase):

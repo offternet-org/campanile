@@ -8,6 +8,7 @@ import hmac
 import json
 import math
 import re
+import time
 
 import cap
 import copying
@@ -26,6 +27,7 @@ _DEVICE_TAG = re.compile(r"[0-9a-f]{12}")  # a phone's tag for the day, as devic
 # A web page can make the browser call 127.0.0.1 under its own name (DNS rebinding):
 # the setup page answers only to the names this computer really has.
 LOCAL_HOSTS = {"localhost", "127.0.0.1", "[::1]"}
+COVERAGE_HOURS = 2  # the coverage test turns itself off: it makes traffic
 
 
 class AdminApi:
@@ -61,6 +63,8 @@ class AdminApi:
             return self._json(200, {"name": who})
         if path.startswith("/api/admin/people"):
             return self._people(path, data)
+        if path.startswith("/api/admin/coverage"):
+            return self._coverage(path)
         if path == "/api/admin/roads/close":
             lon, lat = _coordinate(data.get("lon"), 180), _coordinate(data.get("lat"), 90)
             note = clean_text(data.get("note"), "note", 120, required=False)
@@ -198,6 +202,22 @@ class AdminApi:
             self._log("person_removed", name)
             return self._json(200, {"ok": True})
         raise RequestError(404, "unknown_api")
+
+    def _coverage(self, path: str):
+        """The coverage test: on for a while, and what each spot of the building measured."""
+        cfg = self.cfg
+        if path == "/api/admin/coverage/start":
+            cfg.coverage_until = time.monotonic() + COVERAGE_HOURS * 3600
+            self._log("coverage_started")
+        elif path == "/api/admin/coverage/stop":
+            cfg.coverage_until = 0.0
+            self._log("coverage_stopped")
+        elif path == "/api/admin/coverage/clear":
+            self._log("coverage_cleared", str(cfg.store.clear_coverage()))
+        elif path != "/api/admin/coverage":
+            raise RequestError(404, "unknown_api")
+        left = max(0, math.ceil(cfg.coverage_until - time.monotonic()))
+        return self._json(200, {"left": left, "results": cfg.store.coverage()})
 
     def _log(self, action: str, detail: str = "") -> None:
         self.cfg.store.log(action, detail, who=self._who)

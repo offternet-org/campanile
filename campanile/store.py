@@ -25,6 +25,7 @@ MAX_SAFE_PER_DEVICE = 10  # a family registering its members
 MAX_NAME_WORDS = 4  # of a name search: a name is found with fewer, and each one costs a pass
 MAX_NOTICES = 50
 MAX_CLOSED_ROADS = 300
+MAX_COVERAGE = 500  # coverage measurements kept; older ones go
 MAX_KEYS = 10_000  # devices a rate limit keeps in mind before forgetting the quiet ones
 # Nothing stays forever: in an emergency a post two weeks old has almost always passed, while
 # someone may look for a relative for weeks. The admin can change both when starting.
@@ -115,6 +116,19 @@ CREATE TABLE IF NOT EXISTS closed_roads (
     note TEXT NOT NULL,
     created INTEGER NOT NULL
 );
+CREATE TABLE IF NOT EXISTS coverage (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    at INTEGER NOT NULL,
+    place TEXT NOT NULL,
+    sent INTEGER NOT NULL,
+    lost INTEGER NOT NULL,
+    median_ms INTEGER,
+    worst_ms INTEGER,
+    kbps INTEGER,
+    verdict TEXT NOT NULL,
+    page_ms INTEGER,
+    send_ms INTEGER
+);
 """
 
 # Columns added after 0.1.0: (table, name, definition). Old databases get them on start.
@@ -131,6 +145,9 @@ ADDED_COLUMNS = (
     ("posts", "pending", "INTEGER NOT NULL DEFAULT 0"),
     ("safe", "device", "TEXT"),
     ("admin_log", "who", "TEXT NOT NULL DEFAULT ''"),  # '' is the main password
+    # the coverage test: the home page opened and a post sent, as a phone would
+    ("coverage", "page_ms", "INTEGER"),
+    ("coverage", "send_ms", "INTEGER"),
 )
 
 
@@ -394,6 +411,61 @@ class Store:
                 (limit,),
             ).fetchall()
         return [dict(r) for r in rows]
+
+    # -- the coverage test: how well each spot of the building reaches the Campanile -------
+
+    def add_coverage(
+        self,
+        place: str,
+        sent: int,
+        lost: int,
+        median_ms: int | None,
+        worst_ms: int | None,
+        kbps: int | None,
+        verdict: str,
+        ago: int = 0,
+        page_ms: int | None = None,
+        send_ms: int | None = None,
+    ) -> int:
+        """One measurement, taken `ago` seconds before it arrived. Which phone made it is not
+        kept: only where it was."""
+        with self._lock:
+            cursor = self._db.execute(
+                "INSERT INTO coverage (at, place, sent, lost, median_ms, worst_ms, kbps, verdict,"
+                " page_ms, send_ms) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (
+                    self.now() - ago,
+                    place,
+                    sent,
+                    lost,
+                    median_ms,
+                    worst_ms,
+                    kbps,
+                    verdict,
+                    page_ms,
+                    send_ms,
+                ),
+            )
+            self._db.execute(
+                "DELETE FROM coverage WHERE id <= (SELECT MAX(id) FROM coverage) - ?",
+                (MAX_COVERAGE,),
+            )
+            self._db.commit()
+            return cursor.lastrowid
+
+    def coverage(self) -> list[dict]:
+        with self._lock:
+            rows = self._db.execute(
+                "SELECT id, at, place, sent, lost, median_ms, worst_ms, kbps, verdict, page_ms,"
+                " send_ms FROM coverage ORDER BY at, id"
+            ).fetchall()
+        return [dict(r) for r in rows]
+
+    def clear_coverage(self) -> int:
+        with self._lock:
+            removed = self._db.execute("DELETE FROM coverage").rowcount
+            self._db.commit()
+        return removed
 
     # -- the people who run the Campanile --------------------------------------------------
 

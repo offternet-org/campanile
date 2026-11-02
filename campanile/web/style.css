@@ -392,6 +392,8 @@ body.sheet-open .sheet { flex: 1; min-height: 0; overflow-y: auto; }
 .sign li { margin: 8px 0; overflow-wrap: anywhere; }
 .sign .qr { width: min(260px, 70vw); margin: 8px auto; }
 .sign .qr svg { display: block; width: 100%; height: auto; }
+#coverage-qr { width: min(200px, 60vw); margin: 8px 0; }
+#coverage-qr svg { display: block; width: 100%; height: auto; }
 .sign .small-print { font-size: 0.95rem; }
 
 .step { border-top: 1px solid var(--border); padding-top: 4px; }

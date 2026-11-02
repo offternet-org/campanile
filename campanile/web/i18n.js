@@ -73,6 +73,13 @@ export function tn(key, n, params = {}) {
   return t(`${key}_${n === 1 ? "one" : "other"}`, { n, ...params });
 }
 
+// A page that holds something only in memory (the admin page's password) keeps it across the
+// reload a change of language takes.
+const beforeChange = [];
+export function beforeLanguageChange(keep) {
+  beforeChange.push(keep);
+}
+
 // IT | EN at the top of every page, the language in use filled in: seen at once, in any language.
 function switcher() {
   const nav = document.getElementById("lang-switch");
@@ -91,6 +98,7 @@ function switcher() {
     button.addEventListener("click", () => {
       if (code === lang) return;
       try { localStorage.setItem(CHOICE_KEY, code); } catch { /* no storage: choice not kept */ }
+      for (const keep of beforeChange) keep();
       location.reload();
     });
     return button;
