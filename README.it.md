@@ -30,7 +30,7 @@ con il proprio telefono, senza app, senza account e senza credito, e trova:
 
 | | |
 |---|---|
-| **Avvisi ufficiali** | Chi gestisce il Campanile (Comune, protezione civile, volontari) pubblica dove si distribuisce l'acqua, dove apre un rifugio, cosa evitare. Si possono caricare anche gli allarmi ufficiali in CAP, il formato di IT-alert. |
+| **Avvisi ufficiali** | Chi gestisce il Campanile (Comune, protezione civile, volontari) pubblica dove si distribuisce l'acqua, dove apre un rifugio, cosa evitare. Un'autorità può **firmare** i suoi avvisi: il Campanile controlla la firma senza internet, mostra *firmato · Protezione Civile* e rifiuta quelli falsificati. Si possono caricare anche gli allarmi ufficiali in CAP, il formato di IT-alert. |
 | **Ho bisogno / Offro** | Acqua, cibo, medicinali, energia, alloggio, passaggi: i vicini chiedono e offrono. In cima a "Ho bisogno": in pericolo si chiama il 112, la bacheca non è un numero d'emergenza. |
 | **Medicina offline** | Le voci mediche di Wikipedia, tramite Kiwix. |
 | **Mappa offline** | La tua zona via per via. Cerchi, o tocchi **Ospedale, Farmacia, Acqua, Polizia** per i più vicini. |
@@ -57,8 +57,8 @@ del mondo.
 **Per saperne di più:** [installazione](docs/INSTALLAZIONE.md) (mappe, Wikipedia, chiavette,
 alimentazione) · [comunicare senza rete](docs/COMUNICARE.md) (radio e app per le famiglie) ·
 [gestione](docs/GESTIONE.md) (avvisi, moderazione, avvisi firmati, allarmi
-CAP, PFIF) · [navigatore ed enciclopedia](docs/FUNZIONI.md) · [sicurezza](docs/SICUREZZA.md) ·
-[come è stato provato](docs/PROVE.md) · [roadmap](ROADMAP.md#italiano)
+CAP, PFIF, prova di copertura) · [navigatore ed enciclopedia](docs/FUNZIONI.md) · [sicurezza](docs/SICUREZZA.md) ·
+[come è stato provato](docs/PROVE.md) · [tre Campanili su un computer](docs/BANCO.md) · [roadmap](ROADMAP.md#italiano)
 
 ## Cosa non è
 

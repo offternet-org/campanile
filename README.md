@@ -30,7 +30,7 @@ their own phone, with no app, no account and no mobile credit, and finds:
 
 | | |
 |---|---|
-| **Official notices** | Whoever runs the Campanile (town hall, civil protection, volunteers) posts where water is handed out, where a shelter opens, what to avoid. Official alerts in CAP, IT-alert's format, can be loaded too. |
+| **Official notices** | Whoever runs the Campanile (town hall, civil protection, volunteers) posts where water is handed out, where a shelter opens, what to avoid. An authority can **sign** its notices: the Campanile checks the signature with no internet and shows *signed · Protezione Civile*, and refuses a forged one. Official alerts in CAP, IT-alert's format, can be loaded too. |
 | **"I need / I can give" board** | Water, food, medicine, power, shelter, rides: neighbors ask and offer. At the top of "I need": in danger, call the emergency number; the board is not one. |
 | **Offline medicine** | Wikipedia's medical articles, through Kiwix. |
 | **Offline map** | Your area street by street. Search, or tap **Hospital, Pharmacy, Water, Police** for the nearest. |
@@ -56,9 +56,9 @@ the world.
 
 **More:** [setting up](docs/SETUP.md) (maps, Wikipedia, USB sticks, power) ·
 [talking with no network](docs/RADIO.md) (radios and apps for families) ·
-[running it](docs/ADMIN.md) (notices, moderation, signed notices, CAP alerts, PFIF) ·
+[running it](docs/ADMIN.md) (notices, moderation, signed notices, CAP alerts, PFIF, the coverage test) ·
 [the navigator and the encyclopedia](docs/FEATURES.md) · [security](docs/THREAT-MODEL.md) ·
-[how it was tested](docs/TESTING.md) · [roadmap](ROADMAP.md)
+[how it was tested](docs/TESTING.md) · [three Campaniles on one computer](docs/BENCH.md) · [roadmap](ROADMAP.md)
 
 ## What it is not
 
