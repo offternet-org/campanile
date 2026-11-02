@@ -1,0 +1,30 @@
+# DEVELOPED BY CARROTSTUDIO software house
+# Three Campaniles behind real nginx, on the walls measured in a building (bench/profiles.json):
+# the board exchange, the chain A -> B -> C and every control, before and after. A change that
+# breaks them, or a bench that can no longer see a flipped bit or a closed wall, fails here.
+name: Bench
+
+on:
+  push:
+    branches: [main]
+    paths: ["campanile/**", "bench/**", "raspberry/nginx-site.sh", ".github/workflows/bench.yml"]
+  pull_request:
+    paths: ["campanile/**", "bench/**", "raspberry/nginx-site.sh", ".github/workflows/bench.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  three-campaniles:
+    name: Three Campaniles
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false  # no token left in .git for later steps
+      - run: sudo modprobe sch_netem  # the walls; on a runner without it the bench can't start
+      - run: python3 bench/chain.py --ci
+      - if: always()
+        run: cat bench/runs/*/REPORT.md

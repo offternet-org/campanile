@@ -17,3 +17,6 @@ __pycache__/
 # an update being prepared, and the note left by an updated copy (campanile/update.py)
 .campanile-update/
 .campanile-moved
+
+# Bench runs: the published ones are copied to bench/results/
+/bench/runs/

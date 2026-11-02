@@ -1,0 +1,96 @@
+{
+ "run": "20261102-122038",
+ "fits": [
+  {
+   "name": "P1",
+   "place": "6 metri dal Campanile",
+   "target": {
+    "median_ms": 17,
+    "worst_ms": 73,
+    "kbps": 17332
+   },
+   "profile": {
+    "delay": 6.85,
+    "rate": 23324
+   }
+  },
+  {
+   "name": "P2",
+   "place": "porta di casa",
+   "target": {
+    "median_ms": 44,
+    "worst_ms": 77,
+    "kbps": 14170
+   },
+   "profile": {
+    "delay": 18.648,
+    "rate": 1000000
+   }
+  },
+  {
+   "name": "P3",
+   "place": "corridoio, porta chiusa",
+   "target": {
+    "median_ms": 18,
+    "worst_ms": 75,
+    "kbps": 24385
+   },
+   "profile": {
+    "delay": 7.308,
+    "rate": 1000000
+   }
+  },
+  {
+   "name": "P4",
+   "place": "davanti all'ascensore",
+   "target": {
+    "median_ms": 23,
+    "worst_ms": 64,
+    "kbps": 12633
+   },
+   "profile": {
+    "delay": 9.795,
+    "rate": 19662
+   }
+  },
+  {
+   "name": "P5",
+   "place": "3 m oltre l'ascensore (bordo)",
+   "target": {
+    "median_ms": 35,
+    "worst_ms": 763,
+    "kbps": 8066
+   },
+   "profile": {
+    "delay": 14.342,
+    "rate": 10649
+   }
+  },
+  {
+   "name": "G",
+   "place": "appena dentro 'buono'",
+   "target": {
+    "median_ms": 142,
+    "worst_ms": 475,
+    "kbps": 2105
+   },
+   "profile": {
+    "delay": 67.11,
+    "rate": 3338
+   }
+  },
+  {
+   "name": "F",
+   "place": "appena dentro 'discreto'",
+   "target": {
+    "median_ms": 570,
+    "worst_ms": 1710,
+    "kbps": 316
+   },
+   "profile": {
+    "delay": 273.095,
+    "rate": 364
+   }
+  }
+ ]
+}

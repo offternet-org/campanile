@@ -123,7 +123,8 @@ An automatic check finds only some of the problems. The rest takes people.
 Only once a single node has proven itself in the field.
 
 - [ ] **Sync on contact**: two Campaniles, or a USB stick carried by hand, exchange posts and "I'm
-  safe" names, so families split across neighborhoods can find each other
+  safe" names, so families split across neighborhoods can find each other. Measured on the
+  [bench](docs/BENCH.md): only what's new, never the whole board, and retrying by itself after a gap
 - [ ] **Campaniles talking by radio**: notices over LoRa radios (for example Meshtastic),
   kilometers apart, without internet
 
@@ -266,6 +267,7 @@ Un controllo automatico trova solo una parte dei problemi. Il resto lo trovano l
 Solo quando un nodo da solo ha dato prova di sé sul campo.
 
 - [ ] **Sincronizzazione al contatto**: due Campanili, o una chiavetta USB portata a mano, si
-  scambiano annunci e nomi di "sto bene", così le famiglie separate tra quartieri si ritrovano
+  scambiano annunci e nomi di "sto bene", così le famiglie separate tra quartieri si ritrovano. Misurato
+  sul [banco](docs/BANCO.md): solo le novità, mai la bacheca intera, e riprovare da sola dopo un buco
 - [ ] **Campanili che si parlano via radio**: avvisi via radio LoRa (per esempio Meshtastic), a
   chilometri di distanza, senza internet

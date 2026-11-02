@@ -1,0 +1,74 @@
+{
+ "mode": "full",
+ "seed": 20261030,
+ "window_s": 20.0,
+ "started": "20261102-122038",
+ "commit": "d24e5ba",
+ "uncommitted_files": 26,
+ "docker": "29.5.2 kernel 6.8.0-117-generic cpus 2",
+ "bench_sha256": {
+  "agent.py": "ba619575674b8881",
+  "board.py": "0ea98ed006df5e06",
+  "chain.py": "2eb0c201ecae2a1f",
+  "flap.py": "074d609ded5d9436",
+  "probe.py": "54345ef39dcec014",
+  "proxy.py": "22933ae73db51d13",
+  "seed.py": "ab79bc5f043e95d5"
+ },
+ "campanile_sha256": "c7f85f1f7edf33b7",
+ "image_id": "sha256:c047591fdcb5f598b616e999cf8216e5c57a9e4c3c20bd721fc137e8b76ff8ef",
+ "versions": [
+  "Python 3.13.5",
+  "nginx version: nginx/1.26.3",
+  "13.7",
+  ""
+ ],
+ "boards": {
+  "a:80": {
+   "posts": "1b8cc97ec22e21aba0376981a114bbd23d1ec9a489eb5ecfe8032ae8597b8891",
+   "notices": "4a364a9cffb614a02a19c57984fd1fb7bd917b1dd45d8884badf0828e3a92bf7",
+   "bytes": [
+    27250,
+    416
+   ],
+   "count": 120
+  },
+  "a:81": {
+   "posts": "3eabbb6b5ea120df518ee24fcbf97d639bd3d50eb0751ba697ba4583127447d5",
+   "notices": "f34bdee6bc06db3d171898fa3d5916206a74602b51aea907bead4d805d7e9dd2",
+   "bytes": [
+    407332,
+    422
+   ],
+   "count": 500
+  },
+  "b:80": {
+   "posts": "8b891e9d3d0420a30d34216b440ff20c606c82cbe649d61840e87c95914f66cd",
+   "notices": "fb8f51df872a90d211945f2fc6e63c250016019c1f26dc371d7fce19d01b4db2",
+   "bytes": [
+    26972,
+    416
+   ],
+   "count": 120
+  },
+  "b:81": {
+   "posts": "dd6cacd4b3691b992e209d2e376eda9e9a98f4bf36def1ee65a56078bae074c8",
+   "notices": "95250101dbc9626e73bf410a863b726e50dc613007b923db2d74115b747ba459",
+   "bytes": [
+    407537,
+    422
+   ],
+   "count": 500
+  },
+  "c:80": {
+   "posts": "2f465da3ecc65780e9f39c4b19fd51f38ebec769af54eac0848041915513f701",
+   "notices": "dc379744d6e10dda3679fcba829e5f39a65bb4e0a9c56bec17cfd8cc8faa517f",
+   "bytes": [
+    27239,
+    416
+   ],
+   "count": 120
+  }
+ },
+ "blocks_planned": 18
+}

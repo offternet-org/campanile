@@ -2,14 +2,14 @@
 
 Italian version: [PROVE.md](PROVE.md).
 
-Test record up to version 0.1.1 (30 October 2026). "Executed" means run and observed, not inferred
+Test record up to 2 November 2026: version 0.1.1, then the coverage test and the bench. "Executed" means run and observed, not inferred
 from reading the code. *(review)* marks findings from our own adversarial reviews.
 
 ## Executed
 
 ### Automated tests and CI
 
-- **466 automated tests** pass on macOS (Python 3.14) and in CI on every change (Linux with Python 3.9, 3.11, 3.13, Windows, macOS). The 399 of the 0.1.0 package also ran unzipped on Linux (Python 3.9 and 3.13). Server (board, sto bene (I'm safe), notices, CAP, PFIF, codes, limits, Range, path traversal, captive portal, connection cap, local-only admin, full disk, network errors, smuggled requests, internet names), search and hostile maps, navigator, USB copy and prepared sticks, sharing, launchers, signed notices, signed versions, updating from a stick, one password per person, nginx, setup, languages, Windows firewall.
+- **481 automated tests** pass on macOS (Python 3.14) and in CI on every change (Linux with Python 3.9, 3.11, 3.13, Windows, macOS). The 399 of the 0.1.0 package also ran unzipped on Linux (Python 3.9 and 3.13). Server (board, sto bene (I'm safe), notices, CAP, PFIF, codes, limits, Range, path traversal, captive portal, connection cap, local-only admin, full disk, network errors, smuggled requests, internet names), search and hostile maps, navigator, USB copy and prepared sticks, sharing, launchers, signed notices, signed versions, updating from a stick, one password per person, nginx, setup, languages, Windows firewall.
 - **They catch broken defenses**: 3 planted faults (no path containment, Range ignored, any code accepted) make them fail.
 - **Windows 11 ARM64** (Python 3.13): 291 green before the navigator review fixes, 48 skipped (Mac and Linux only). CI runs all of them on GitHub's Windows runner, firewall attack and planted `py.bat` included.
 - **shellcheck** (11 scripts) and **ruff**: clean, in CI at every change.
@@ -42,6 +42,18 @@ from reading the code. *(review)* marks findings from our own adversarial review
 - **Hostile installer options** (`--ssid "x;reboot"`) and a hotspot without NetworkManager (Trixie): refused with a clear message.
 - **As a tester would, on the real Raspberry Pi OS in a container** (Trixie image of 6 October 2026, ARM64): the guide's lines pasted over SSH, twice in the same terminal. Every line passes, the second paste in 8 seconds with nothing downloaded again, except switching on the hotspot, which needs a real Wi-Fi chip. Two flaws found and fixed: pasted again, `git clone` refused the existing folder and the three lines after it failed; and the hotspot firewall disappeared whenever Raspberry Pi OS's own `nftables.service`, which empties every table, ran after it. With `nftables` held back 3 seconds it was gone at boot and after `systemctl restart` or `reload nftables`; now it stays in all three, and comes back when `nftables` is stopped and started again (before, only at the next boot).
 - **What the Raspberry keeps about phones** (30 October 2026, Raspberry Pi OS in a container): a phone in its own network namespace asked NetworkManager's dnsmasq for an address, with the installer's dnsmasq file. Before, the lease file was empty and the journal had nothing; after, both held the phone's MAC, IP and name. The journal lives in `/run/log/journal`: Raspberry Pi OS keeps it in memory (`Storage=volatile`). Now in LIMITS.
+
+### The coverage test
+
+- **A walk with an iPhone** (30 October 2026, the Campanile on a Mac, home Wi-Fi): five spots from 6 m to past the lift. Medians 17-44 ms, 8-24 Mbit/s, nothing lost. Past the lift a measure went through only near a wall. Found: the edge read "good" with one reply at 763 ms, so "good" now also needs the slowest reply within 0.5 s; and measures that didn't go through were lost, so now they wait on the phone.
+- **In Chrome, as phones** (2 November 2026): off, the page says so and measures nothing; on, a measure in Italian and one in English; with every request failing, as with no signal, the measure waits on the phone and goes by itself once back in range; the admin table lists all three and clearing empties it; axe-core finds nothing on either page; no sideways scrolling at 320 px. Found: times under 0.05 s read "0 s", now "<0.1 s".
+- **Automated tests**: off until the admin turns it on and off again after 2 hours, the 256 kB download, nothing about the phone stored, late measures put back at their time, bad numbers refused, the test post dropped, per-device limits, only the admin can read and clear, the oldest results going.
+- **The admin page logged itself out when changing language.** Now the password survives the reload in the browser's session storage, only on the Campanile itself, and is cleared at once.
+
+### Three Campaniles, on Wi-Fi measured in a building
+
+- **[The bench](BENCH.md)** (2 November 2026, valid, 27 of 27 controls): three Campaniles behind real nginx, on links tuned with the coverage test to five spots measured with an iPhone. Boards swapped in under 0.4 s, 50 of 50 at every spot; a message from A to C through B, 20 of 20, identical field by field. A full board doesn't fit a 20 s visit at the edge of "fair" (0 of 30). Where the coverage test said good or fair, 469 exchanges of 470 were done in time.
+- **It catches itself**: with the fingerprint check removed from the stand-in, the short version CI runs on every change fails. A run stopped halfway, by Ctrl-C or SIGTERM, reports NON VALIDA and removes its containers.
 
 ### Security and attacks
 
@@ -194,6 +206,7 @@ from reading the code. *(review)* marks findings from our own adversarial review
 | Issue forms | live on the public repo, not yet used by someone else | open an issue with the "Test report" form |
 | Online demo on real Safari and the chosen hosting | run in Chrome, WebKit, Firefox on local hosting. Driving Safari needs "Consenti automazione remota" (Allow Remote Automation). Public address not chosen | open it on an iPhone, also in a private window |
 | Load with real phones (the simulated bench is done) | needs many devices. The Raspberry's Wi-Fi takes fewer connections than a cable | time it and measure power with 20-30 phones |
+| Board exchange between two real Raspberry Pis, floors included | the [bench](BENCH.md) copies a phone and a home router on 5 GHz, along one floor | two Raspberry Pis in two flats: the coverage test from one to the other, then the bench's exchange |
 | Battery runtime | depends on the hardware | USB power meter on the Raspberry under real load |
 | A real power cut | killing the process doesn't flush the OS cache | pull the plug while phones post, check every confirmed post survived |
 | Navigator on a Raspberry Pi | measured only on the test laptop (metro area built in 3.2 s, routes across it in 84-111 ms). A Raspberry is slower | load your area's map, time the «Add destination» button and a few long routes |

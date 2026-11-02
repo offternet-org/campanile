@@ -1,0 +1,63 @@
+12:20:38 run 20261102-122038 (full), commit d24e5ba, 29.5.2 kernel 6.8.0-117-generic cpus 2
+12:20:40 seeded 120 posts and 3 notices marked A
+12:20:41 seeded 500 posts and 3 notices marked AX, every field full
+12:20:41 seeded 120 posts and 3 notices marked B
+12:20:41 seeded 500 posts and 3 notices marked BX, every field full
+12:20:41 seeded 120 posts and 3 notices marked C
+12:20:48 controls before measuring
+12:20:49   [PASS] prima: senza muro lo scambio riesce: {"ok": 10, "n": 10, "seconds_max": 0.0056}
+12:20:49   [PASS] prima: impronta sbagliata rifiutata: {"ok": false, "kind": "mismatch", "why": "content differs from the neighbour's", "seconds": 0.0027, "bytes": 27666, "tries": 1, "merged": null, "wall": 1793618449.967165}
+12:20:50   [PASS] prima: lo stesso intermediario senza guasto non disturba: {"agent": "ok", "proxy": ["listening"]}
+12:20:51   [PASS] prima: un bit cambiato per strada viene scoperto: {"agent": "mismatch", "proxy": ["flipped body byte 100: 0x20 -> 0x21"], "same_size": true}
+12:20:51   [PASS] prima: una finestra troppo corta fallisce: {"ok": false, "kind": "timeout", "why": "window over", "seconds": 0.0008, "bytes": 0, "tries": 1, "merged": null, "wall": 1793618451.2090168}
+12:22:31   [PASS] prima: muro chiuso, nessuno scambio, e si aspetta tutta la finestra: {"kinds": ["timeout", "timeout", "timeout", "timeout", "timeout"], "waited": [20.0229, 20.0081, 20.0233, 20.026, 20.0187]}
+12:22:31   [PASS] prima: il muro A-B non tocca B-C: {"ok": true, "kind": "ok", "why": "", "seconds": 0.0025, "bytes": 27388, "tries": 1, "merged": null, "wall": 1793618551.837666}
+12:22:35   [PASS] prima: il muro B-C non tocca A-B, e B-C e' davvero chiuso: {"a<-b": {"ok": true, "kind": "ok", "why": "", "seconds": 0.0025, "bytes": 27388, "tries": 1, "merged": null, "wall": 1793618552.0368128}, "c<-b": {"ok": false, "kind": "timeout", "why": "window over", "seconds": 3.0029, "bytes": 0, "tries": 1, "merged": null, "wall": 1793618552.1049094, "last_error
+12:22:39   [PASS] prima: A non raggiunge C da solo, solo attraverso B: {"ok": false, "kind": "timeout", "why": "window over", "seconds": 4.5286, "bytes": 0, "tries": 10, "merged": null, "wall": 1793618555.2440395, "last_error": "OSError: [Errno 101] Network is unreachable", "last_error_kind": "unreachable"}
+12:22:39   [PASS] prima: B non instrada pacchetti: {"ip_forward": "0"}
+12:22:50   no wall: http ping median 0.43 ms, 1.37 ms through nginx
+12:22:50 tuning the walls on the coverage test
+12:23:44   P1: delay 6.85 ms per side, rate 23324 kbit/s -> median 17 (target 17), kbps 16435 (target 17332), worst 17, lost 0/100, uguale, OK
+12:24:22   P2: delay 18.648 ms per side, rate 1000000 kbit/s -> median 44 (target 44), kbps 9596 (target 14170), worst 46, lost 0/100, prudente, OK
+12:24:51   P3: delay 7.308 ms per side, rate 1000000 kbit/s -> median 17 (target 18), kbps 23931 (target 24385), worst 18, lost 0/100, uguale, OK
+12:26:01   P4: delay 9.795 ms per side, rate 19662 kbit/s -> median 24 (target 23), kbps 13021 (target 12633), worst 24, lost 0/100, uguale, OK
+12:27:14   P5: delay 14.342 ms per side, rate 10649 kbit/s -> median 35 (target 35), kbps 7689 (target 8066), worst 36, lost 0/100, uguale, OK
+12:28:55   G: delay 67.11 ms per side, rate 3338 kbit/s -> median 145 (target 142), kbps 2138 (target 2105), worst 147, lost 0/100, uguale, OK
+12:34:17   F: delay 273.095 ms per side, rate 364 kbit/s -> median 570 (target 570), kbps 304 (target 316), worst 573, lost 0/100, uguale, OK
+12:34:37   [PASS] il muro P5 sul collegamento B-C da' gli stessi numeri che su A-B: {'same': True, 'a-b': {'median_ms': 34.86, 'kbps': 7690}, 'b-c': {'median_ms': 35.13, 'kbps': 7731}}
+12:34:37 exchanges: 18 blocks in random order
+12:35:11   P2: 50/50 within 20 s, slowest 0.3574 s, verdict ['good', 'good', 'good']
+12:42:11   P5 + buchi di 10 s ogni 20 s: 30/30 within 20 s, slowest 11.5018 s, verdict ['bad', 'good', 'good']
+12:44:32   P5 + buchi di 2 s ogni 4 s: 29/30 within 20 s, slowest 8.0294 s, verdict ['fair', 'fair', 'fair']
+12:44:56   P4: 50/50 within 20 s, slowest 0.192 s, verdict ['good', 'good', 'good']
+12:46:22   G: 50/50 within 20 s, slowest 1.2123 s, verdict ['good', 'good', 'good']
+12:46:44   P3: 50/50 within 20 s, slowest 0.1645 s, verdict ['good', 'good', 'good']
+12:55:32   P5 + 30% persi: 18/30 within 20 s, slowest 19.65 s, verdict ['bad', 'bad', 'bad']
+12:59:22   P5 + buchi di 5 s ogni 10 s: 30/30 within 20 s, slowest 8.0151 s, verdict ['good', 'fair', 'good']
+12:59:53   P5: 50/50 within 20 s, slowest 0.2925 s, verdict ['good', 'good', 'good']
+13:00:26   P5 + 5% persi: 30/30 within 20 s, slowest 1.44 s, verdict ['good', 'fair', 'fair']
+13:10:52   F bacheca piena: 0/30 within 20 s, slowest - s, verdict []
+13:14:04   P5 + 20% persi: 28/30 within 20 s, slowest 13.1616 s, verdict ['bad', 'bad', 'bad']
+13:14:27   P1: 50/50 within 20 s, slowest 0.1401 s, verdict ['good', 'good', 'good']
+13:20:00   F: 50/50 within 20 s, slowest 5.2435 s, verdict ['fair', 'fair', 'fair']
+13:33:44   P5 + 50% persi: 0/30 within 20 s, slowest - s, verdict ['bad', 'bad', 'bad']
+13:34:56   P5 + 10% persi: 30/30 within 20 s, slowest 5.3593 s, verdict ['fair', 'fair', 'fair']
+13:35:29   P5 bacheca piena: 30/30 within 20 s, slowest 0.9459 s, verdict []
+13:40:35   F + 5% persi: 30/30 within 20 s, slowest 18.2953 s, verdict ['bad', 'bad', 'fair']
+13:40:35 the chain: A -> B -> C on the edge wall
+13:40:37   [PASS] prima volta: B riceve tutta la bacheca di A, C quella di B, A compreso: {"before": {"a": 120, "b": 120, "c": 120}, "after": {"a": 120, "b": 240, "c": 360}, "expected": {"a": 120, "b": 240, "c": 360}, "merged": [120, 240], "seconds": [0.156, 0.1836]}
+13:40:38   [PASS] seconda volta: niente di doppio: {"merged": [0, 0], "after": {"a": 120, "b": 240, "c": 360}}
+13:41:01   [PASS] canarini: da A a C passando per B, identici campo per campo: {"through": 20, "n": 20, "hop_seconds": [[0.1566, 0.1824], [0.1509, 0.1875], [0.156, 0.1825], [0.1493, 0.1887], [0.1431, 0.1911], [0.1565, 0.1886], [0.1545, 0.1928], [0.1531, 0.1933], [0.1483, 0.1917], [0.1516, 0.1911], [0.1511, 0.1923], [0.1551, 0.1893], [0.157, 0.1965], [0.1463, 0.1833], [0.1575, 
+13:41:22   [PASS] con B-C chiuso il canarino si ferma a B, e passa appena si riapre: {"a->b": "ok", "b->c cut": "timeout", "stuck_at_b": true, "b->c reopened": "ok", "arrived_after": true}
+13:41:22 controls at the end
+13:41:23   [PASS] dopo: senza muro lo scambio riesce: {"ok": 10, "n": 10, "seconds_max": 0.006}
+13:41:23   [PASS] dopo: impronta sbagliata rifiutata: {"ok": false, "kind": "mismatch", "why": "content differs from the neighbour's", "seconds": 0.0028, "bytes": 32123, "tries": 1, "merged": null, "wall": 1793623283.9504597}
+13:41:24   [PASS] dopo: lo stesso intermediario senza guasto non disturba: {"agent": "ok", "proxy": ["listening"]}
+13:41:25   [PASS] dopo: un bit cambiato per strada viene scoperto: {"agent": "mismatch", "proxy": ["flipped body byte 100: 0x5d -> 0x5c"], "same_size": true}
+13:41:25   [PASS] dopo: una finestra troppo corta fallisce: {"ok": false, "kind": "timeout", "why": "window over", "seconds": 0.0008, "bytes": 0, "tries": 1, "merged": null, "wall": 1793623285.190218}
+13:43:05   [PASS] dopo: muro chiuso, nessuno scambio, e si aspetta tutta la finestra: {"kinds": ["timeout", "timeout", "timeout", "timeout", "timeout"], "waited": [20.0296, 20.0128, 20.0258, 20.0258, 20.0164]}
+13:43:05   [PASS] dopo: il muro A-B non tocca B-C: {"ok": true, "kind": "ok", "why": "", "seconds": 0.003, "bytes": 59192, "tries": 1, "merged": null, "wall": 1793623385.7820435}
+13:43:09   [PASS] dopo: il muro B-C non tocca A-B, e B-C e' davvero chiuso: {"a<-b": {"ok": true, "kind": "ok", "why": "", "seconds": 0.0032, "bytes": 59192, "tries": 1, "merged": null, "wall": 1793623386.0118792}, "c<-b": {"ok": false, "kind": "timeout", "why": "window over", "seconds": 3.0066, "bytes": 0, "tries": 1, "merged": null, "wall": 1793623386.089037, "last_error"
+13:43:13   [PASS] dopo: A non raggiunge C da solo, solo attraverso B: {"ok": false, "kind": "timeout", "why": "window over", "seconds": 4.5369, "bytes": 0, "tries": 10, "merged": null, "wall": 1793623389.230901, "last_error": "OSError: [Errno 101] Network is unreachable", "last_error_kind": "unreachable"}
+13:43:13   [PASS] dopo: B non instrada pacchetti: {"ip_forward": "0"}
+13:43:13 report: /Users/matteomercaldi/Desktop/Campanile/bench/runs/20261102-122038/REPORT.md

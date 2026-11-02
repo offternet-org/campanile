@@ -2,7 +2,7 @@
 
 English version: [TESTING.md](TESTING.md).
 
-Registro delle prove fino alla versione 0.1.1 (30 ottobre 2026). "Eseguito" significa lanciato e
+Registro delle prove fino al 2 novembre 2026: la versione 0.1.1, poi la prova di copertura e il banco. "Eseguito" significa lanciato e
 osservato, non dedotto leggendo il codice. *(revisione)* indica ciò che è emerso dalle nostre
 revisioni da attaccante.
 
@@ -10,7 +10,7 @@ revisioni da attaccante.
 
 ### Test automatici e CI
 
-- **466 test automatici** superati su macOS (Python 3.14) e sulla CI a ogni modifica (Linux con Python 3.9, 3.11, 3.13, Windows, macOS). I 399 del pacchetto 0.1.0 sono stati eseguiti anche scompattati su Linux (Python 3.9 e 3.13). Server (bacheca, sto bene, avvisi, CAP, PFIF, codici, limiti, Range, attraversamento di percorso, captive portal, tetto alle connessioni, gestione solo locale, disco pieno, errori di rete, richieste nascoste, nomi di internet), ricerca e mappe ostili, navigatore, copia su chiavetta e chiavette preparate, condivisione, file di avvio, avvisi firmati, versioni firmate, aggiornamento da chiavetta, una password per persona, nginx, preparazione, lingue, firewall di Windows.
+- **481 test automatici** superati su macOS (Python 3.14) e sulla CI a ogni modifica (Linux con Python 3.9, 3.11, 3.13, Windows, macOS). I 399 del pacchetto 0.1.0 sono stati eseguiti anche scompattati su Linux (Python 3.9 e 3.13). Server (bacheca, sto bene, avvisi, CAP, PFIF, codici, limiti, Range, attraversamento di percorso, captive portal, tetto alle connessioni, gestione solo locale, disco pieno, errori di rete, richieste nascoste, nomi di internet), ricerca e mappe ostili, navigatore, copia su chiavetta e chiavette preparate, condivisione, file di avvio, avvisi firmati, versioni firmate, aggiornamento da chiavetta, una password per persona, nginx, preparazione, lingue, firewall di Windows.
 - **I test individuano le difese rotte**: 3 guasti introdotti apposta (contenimento dei percorsi tolto, Range ignorato, qualunque codice accettato) li fanno fallire.
 - **Windows 11 ARM64** (Python 3.13): 291 verdi prima delle correzioni della revisione del navigatore, 48 saltati (solo per Mac e Linux). La CI li fa girare tutti sul Windows di GitHub, compresi l'attacco al firewall e il `py.bat` infilato.
 - **shellcheck** (11 script) e **ruff**: puliti, nella CI a ogni modifica.
@@ -43,6 +43,18 @@ revisioni da attaccante.
 - **Opzioni ostili all'installazione** (`--ssid "x;reboot"`) e hotspot senza NetworkManager (Trixie): rifiutate con un messaggio chiaro.
 - **Come lo farebbe un tester, sul vero Raspberry Pi OS in un contenitore** (immagine Trixie del 6 ottobre 2026, ARM64): le righe della guida incollate via SSH, due volte nello stesso terminale. Passano tutte, il secondo incolla in 8 secondi senza riscaricare niente, tranne l'accensione dell'hotspot, che vuole un vero chip Wi-Fi. Trovati e corretti due difetti: incollate di nuovo, `git clone` rifiutava la cartella esistente e le tre righe dopo fallivano; e il firewall dell'hotspot spariva ogni volta che il `nftables.service` di Raspberry Pi OS, che svuota tutte le tabelle, partiva dopo di lui. Con `nftables` ritardato di 3 secondi mancava all'avvio e dopo `systemctl restart` o `reload nftables`; ora resta in tutti e tre, e torna quando `nftables` viene fermato e riavviato (prima, solo al riavvio successivo).
 - **Cosa tiene il Raspberry dei telefoni** (30 ottobre 2026, Raspberry Pi OS in un contenitore): un telefono nella sua rete virtuale ha chiesto un indirizzo al dnsmasq di NetworkManager, con il file dnsmasq dell'installatore. Prima il file dei lease era vuoto e il journal non aveva niente; dopo, tutti e due avevano MAC, IP e nome del telefono. Il journal sta in `/run/log/journal`: Raspberry Pi OS lo tiene in memoria (`Storage=volatile`). Ora è nei LIMITI.
+
+### La prova di copertura
+
+- **Un giro con un iPhone** (30 ottobre 2026, il Campanile su un Mac, Wi-Fi di casa): cinque punti da 6 m a oltre l'ascensore. Mediane 17-44 ms, 8-24 Mbit/s, niente perso. Oltre l'ascensore una misura passava solo vicino a un muro. Trovato: il bordo risultava "buono" con una risposta a 763 ms, quindi ora "buono" vuole anche la risposta più lenta entro 0,5 s; e le misure che non arrivavano andavano perse, ora aspettano sul telefono.
+- **In Chrome, come telefoni** (2 novembre 2026): spenta, la pagina lo dice e non misura niente; accesa, una misura in italiano e una in inglese; con ogni richiesta che fallisce, come senza segnale, la misura aspetta sul telefono e parte da sola al ritorno in copertura; la tabella di gestione le elenca tutte e tre e la cancellazione la svuota; axe-core non trova niente su nessuna delle due pagine; niente scorrimento laterale a 320 px. Trovato: i tempi sotto 0,05 s si leggevano "0 s", ora "<0,1 s".
+- **Test automatici**: spenta finché non la accende la gestione e di nuovo spenta dopo 2 ore, lo scaricamento da 256 kB, niente del telefono salvato, le misure in ritardo rimesse alla loro ora, i numeri sbagliati rifiutati, l'annuncio di prova scartato, i limiti per dispositivo, solo la gestione legge e cancella, le misure più vecchie che se ne vanno.
+- **La pagina di gestione faceva uscire cambiando lingua.** Ora la password supera il ricaricamento nella memoria di sessione del browser, solo sul Campanile stesso, e viene cancellata subito.
+
+### Tre Campanili, sul Wi-Fi misurato in un palazzo
+
+- **[Il banco](BANCO.md)** (2 novembre 2026, valido, 27 controlli su 27): tre Campanili dietro nginx vero, su collegamenti tarati con la prova di copertura su cinque punti misurati con un iPhone. Bacheche scambiate in meno di 0,4 s, 50 su 50 in ogni punto; un messaggio da A a C attraverso B, 20 su 20, identico campo per campo. Una bacheca piena non sta in una visita di 20 s al limite del "discreto" (0 su 30). Dove la prova di copertura diceva buono o discreto, 469 scambi su 470 sono arrivati in tempo.
+- **Si accorge dei propri guasti**: tolto il controllo dell'impronta dal sostituto, la versione corta che la CI lancia a ogni modifica fallisce. Una corsa fermata a metà, con Ctrl-C o SIGTERM, dice NON VALIDA e spegne i suoi container.
 
 ### Sicurezza e attacchi
 
@@ -196,6 +208,7 @@ revisioni da attaccante.
 | Moduli delle issue | sono attivi sul repository pubblico, nessun altro li ha ancora usati | aprire una issue con il modulo "Resoconto di una prova" |
 | Demo online su Safari vero e sull'hosting scelto | provata in Chrome, WebKit, Firefox su hosting locale. Per comandare Safari serve abilitare "Consenti automazione remota". Indirizzo pubblico da decidere | aprirla da un iPhone, anche in finestra privata |
 | Carico con telefoni veri (il banco simulato è fatto) | servono molti dispositivi. Il Wi-Fi del Raspberry regge meno connessioni del cavo | misurare tempi e consumi con 20-30 telefoni |
+| Scambio delle bacheche fra due Raspberry Pi veri, piani compresi | il [banco](BANCO.md) copia un telefono e un router di casa a 5 GHz, lungo un piano | due Raspberry Pi in due appartamenti: la prova di copertura dall'uno all'altro, poi lo scambio del banco |
 | Autonomia a batteria | dipende dall'hardware | misuratore USB sul Raspberry con il carico reale |
 | Corrente staccata davvero | uccidere il processo non svuota la cache del sistema operativo | staccare la spina mentre i telefoni pubblicano, verificare che ogni annuncio confermato ci sia |
 | Il navigatore su un Raspberry Pi | misurato solo sul portatile di prova (area metropolitana costruita in 3,2 s, percorsi da un capo all'altro in 84-111 ms). Un Raspberry è più lento | metti la mappa della tua zona su un Raspberry, misura quando compare «Aggiungi destinazione» e quanto durano alcuni percorsi lunghi |
