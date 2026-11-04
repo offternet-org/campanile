@@ -28,9 +28,9 @@ raggiunge C solo attraverso B, e B non instrada pacchetti.
 
 ```mermaid
 flowchart LR
-    A["Campanile A"] <-->|"wall A-B"| B["Campanile B"]
-    B <-->|"wall B-C"| C["Campanile C"]
-    A -.-|"no direct path"| C
+    A["Campanile A"] <-->|"muro A-B"| B["Campanile B"]
+    B <-->|"muro B-C"| C["Campanile C"]
+    A -.-|"nessuna strada diretta"| C
 ```
 
 ## Come si controlla da solo
