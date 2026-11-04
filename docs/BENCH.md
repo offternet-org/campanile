@@ -26,6 +26,13 @@ Run of 2 November 2026, valid: 27 of 27 controls passed.
 Each Campanile runs in its own container; A and C sit on two separate networks, and B on both.
 A can reach C only through B, and B doesn't route packets.
 
+```mermaid
+flowchart LR
+    A["Campanile A"] <-->|"wall A-B"| B["Campanile B"]
+    B <-->|"wall B-C"| C["Campanile C"]
+    A -.-|"no direct path"| C
+```
+
 ## How it checks itself
 
 Every number counts only if the bench has first been seen failing where it should. Before

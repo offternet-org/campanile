@@ -26,6 +26,13 @@ Corsa del 2 novembre 2026, valida: 27 controlli su 27 superati.
 Ogni Campanile gira nel suo container; A e C stanno su due reti separate, B su tutte e due. A
 raggiunge C solo attraverso B, e B non instrada pacchetti.
 
+```mermaid
+flowchart LR
+    A["Campanile A"] <-->|"wall A-B"| B["Campanile B"]
+    B <-->|"wall B-C"| C["Campanile C"]
+    A -.-|"no direct path"| C
+```
+
 ## Come si controlla da solo
 
 Un numero vale solo se prima il banco è stato visto fallire dove deve. Prima di misurare, e di
